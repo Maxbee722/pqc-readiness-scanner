@@ -228,3 +228,19 @@ body {
   color: #262B33;
   margin: 0 0.6rem;
 }
+
+@media (max-width: 480px) {
+  .hero h1 {
+    font-size: 1.8rem;
+    line-height: 1.3;
+  }
+
+  .app {
+    padding: 2rem 1.2rem;
+  }
+
+  .qday {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.8rem;
+  }
+}
