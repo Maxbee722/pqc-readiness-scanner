@@ -63,4 +63,4 @@ The name bash (the Bourne-Again SHell) is a double pun on creator Stephen Bourne
 
 ## Author
 
-Built by Maxwell Beyioku — second-year cybersecurity student, Koladaisi University Ibadan.
+Built by Maxwell Beyioku — second-year cybersecurity student, Koladaisi University.
