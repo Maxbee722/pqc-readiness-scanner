@@ -206,3 +206,25 @@ body {
 .result-detail span {
   color: #E6E8EB;
 }
+
+.footer {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #262B33;
+  text-align: center;
+  font-size: 0.85rem;
+}
+
+.footer a {
+  color: #9BA3AE;
+  text-decoration: none;
+}
+
+.footer a:hover {
+  color: #7C6FF0;
+}
+
+.footer-dot {
+  color: #262B33;
+  margin: 0 0.6rem;
+}
