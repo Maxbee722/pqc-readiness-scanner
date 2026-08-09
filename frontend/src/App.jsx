@@ -10,7 +10,7 @@ function App() {
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
 
-  const API_BASE = 'http://127.0.0.1:5000'
+  const API_BASE = 'https://pqc-readiness-scanner.onrender.com'
 
   const scanSingle = async () => {
     if (!domain.trim()) return
