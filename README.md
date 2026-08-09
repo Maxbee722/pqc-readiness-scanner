@@ -32,7 +32,6 @@ In summary, every website on the internet (even PQC ready ones) would be display
 - [ ] Batch comparison view
 - [ ] Export results as PDF/CSV
 - [ ] "Learn More" section explaining PQC concepts
-- [ ] Insight/blog section
 - [ ] Mobile responsiveness
 
 ## Tech stack
