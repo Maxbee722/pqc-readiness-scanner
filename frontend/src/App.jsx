@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useState } from "react";
 import "./App.css";
 
@@ -10,6 +11,46 @@ function App() {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
+  const [history, setHistory] = useState([]);
+  const [showHistory, setShowHistory] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("pqc_scan_history");
+    if (saved) {
+      try {
+        setHistory(JSON.parse(saved));
+      } catch (err) {
+        console.error("Could not load scan history");
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("pqc_scan_history");
+    if (saved) {
+      try {
+        setHistory(JSON.parse(saved));
+      } catch (err) {
+        console.error("Could not load scan history");
+      }
+    }
+  }, []);
+
+  const addToHistory = (result) => {
+    if (result.error) return;
+
+    const entry = {
+      domain: result.domain,
+      pqc_readiness: result.pqc_readiness,
+      timestamp: new Date().toISOString(),
+    };
+
+    setHistory((prev) => {
+      const updated = [entry, ...prev].slice(0, 20);
+      localStorage.setItem("pqc_scan_history", JSON.stringify(updated));
+      return updated;
+    });
+  };
 
   const API_BASE = "https://pqc-readiness-scanner.onrender.com";
 
@@ -25,6 +66,7 @@ function App() {
       });
       const data = await res.json();
       setResults([data]);
+      addToHistory(data);
     } catch (err) {
       setResults([
         {
@@ -83,6 +125,7 @@ function App() {
 
       setProgress({ current: i + 1, total: domains.length });
       setResults([...collected]);
+      addToHistory(data);
     }
 
     setLoading(false);
@@ -112,6 +155,34 @@ function App() {
           insecure today.
         </div>
       </div>
+
+      <button
+        className="history-toggle"
+        onClick={() => setShowHistory(!showHistory)}
+      >
+        History {history.length > 0 && `(${history.length})`}
+      </button>
+
+      {showHistory && (
+        <div className="history-panel">
+          {history.length === 0 ? (
+            <div className="history-empty">No scans yet</div>
+          ) : (
+            history.map((entry, i) => (
+              <div className="history-item" key={i}>
+                <span className="history-domain">{entry.domain}</span>
+                <span
+                  className={
+                    entry.pqc_readiness === "NOT PQC-Ready"
+                      ? "history-dot not-ready"
+                      : "history-dot ready"
+                  }
+                ></span>
+              </div>
+            ))
+          )}
+        </div>
+      )}
 
       <div className="mode-toggle">
         <button
