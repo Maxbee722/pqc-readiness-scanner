@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from scanner import get_cert_info, scan_multiple
+import subprocess
 
 app = Flask(__name__)
 CORS(app)
@@ -34,3 +35,13 @@ if __name__ == "__main__":
 @app.route("/ping", methods=["GET"])
 def ping():
     return jsonify({"status": "alive"})
+
+@app.route("/debug-openssl", methods=["GET"])
+def debug_openssl():
+    from scanner import get_openssl_path
+    path = get_openssl_path()
+    try:
+        result = subprocess.run([path, "version"], capture_output=True, text=True, timeout=5)
+        return jsonify({"openssl_path": path, "version": result.stdout + result.stderr})
+    except Exception as e:
+        return jsonify({"openssl_path": path, "error": str(e)})
