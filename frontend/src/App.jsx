@@ -9,6 +9,7 @@ function App() {
   const [file, setFile] = useState(null);
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState({ current: 0, total: 0 });
 
   const API_BASE = "https://pqc-readiness-scanner.onrender.com";
 
@@ -28,7 +29,8 @@ function App() {
       setResults([
         {
           domain: domain.trim(),
-          error: "Could not reach the scanner API. Is app.py running?",
+          error:
+            "Could not reach the scanner API. Is app.py on render running?",
         },
       ]);
     }
@@ -59,22 +61,30 @@ function App() {
   const runBatch = async (domains) => {
     setLoading(true);
     setResults([]);
-    try {
-      const res = await fetch(`${API_BASE}/scan-batch`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ domains }),
-      });
-      const data = await res.json();
-      setResults(data);
-    } catch (err) {
-      setResults([
-        {
-          domain: "batch",
-          error: "Could not reach the scanner API. Is app.py running?",
-        },
-      ]);
+    setProgress({ current: 0, total: domains.length });
+
+    const collected = [];
+
+    for (let i = 0; i < domains.length; i++) {
+      try {
+        const res = await fetch(`${API_BASE}/scan`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ domain: domains[i] }),
+        });
+        const data = await res.json();
+        collected.push(data);
+      } catch (err) {
+        collected.push({
+          domain: domains[i],
+          error: "Could not reach the scanner API.",
+        });
+      }
+
+      setProgress({ current: i + 1, total: domains.length });
+      setResults([...collected]);
     }
+
     setLoading(false);
   };
 
@@ -193,6 +203,20 @@ function App() {
           </>
         )}
       </div>
+
+      {loading && progress.total > 0 && (
+        <div className="progress-bar-container">
+          <div className="progress-text">
+            Scanning {progress.current} of {progress.total}...
+          </div>
+          <div className="progress-track">
+            <div
+              className="progress-fill"
+              style={{ width: `${(progress.current / progress.total) * 100}%` }}
+            ></div>
+          </div>
+        </div>
+      )}
 
       {results.map((result, i) => (
         <div className="result-card" key={i}>
