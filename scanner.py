@@ -1,5 +1,8 @@
 import ssl
+import subprocess
 import socket
+import shutil
+import os
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 
@@ -31,6 +34,9 @@ def get_cert_info(domain, port=443):
 
     except Exception as e:
         result["error"] = str(e)
+
+    handshake_result = check_pqc_handshake(domain, port)
+    result.update(handshake_result)
 
     return result
 
@@ -109,3 +115,45 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+PQC_GROUPS = [
+    "X25519MLKEM768",
+    "SecP256r1MLKEM768",
+    "SecP384r1MLKEM1024",
+]
+
+def check_pqc_handshake(domain, port=443):
+    groups_string = ":".join(PQC_GROUPS)
+    try:
+        result = subprocess.run(
+            [get_openssl_path(), "s_client", "-connect", f"{domain}:{port}"],
+            input="",
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        output = result.stdout + result.stderr
+
+        for group in PQC_GROUPS:
+            if f"Negotiated TLS1.3 group: {group}" in output:
+                return {"pqc_handshake": True, "negotiated_group": group}
+
+        return {"pqc_handshake": False, "negotiated_group": None}
+
+    except subprocess.TimeoutExpired:
+        return {"pqc_handshake": False, "negotiated_group": None, "handshake_error": "Timed out"}
+    except FileNotFoundError:
+        return {"pqc_handshake": False, "negotiated_group": None, "handshake_error": "OpenSSL not found on this system"}
+    except Exception as e:
+        return {"pqc_handshake": False, "negotiated_group": None, "handshake_error": str(e)}
+
+def get_openssl_path():
+    found = shutil.which("openssl")
+    if found:
+        return found
+
+    windows_fallback = r"C:\Program Files\Git\mingw64\bin\openssl.exe"
+    if os.path.exists(windows_fallback):
+        return windows_fallback
+
+    return "openssl" 

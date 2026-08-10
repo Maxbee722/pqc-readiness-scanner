@@ -133,9 +133,24 @@ function App() {
 
   const getBadge = (result) => {
     if (result.error) return <span className="badge error">ERROR</span>;
-    if (result.pqc_readiness === "NOT PQC-Ready")
-      return <span className="badge not-ready">NOT READY</span>;
-    return <span className="badge ready">READY</span>;
+    return (
+      <div className="badge-group">
+        <span
+          className={
+            result.pqc_readiness === "NOT PQC-Ready"
+              ? "badge not-ready"
+              : "badge ready"
+          }
+        >
+          CERT: {result.pqc_readiness === "NOT PQC-Ready" ? "CLASSICAL" : "PQC"}
+        </span>
+        <span
+          className={result.pqc_handshake ? "badge ready" : "badge not-ready"}
+        >
+          HANDSHAKE: {result.pqc_handshake ? "PQC" : "CLASSICAL"}
+        </span>
+      </div>
+    );
   };
 
   const clearHistory = () => {
@@ -314,6 +329,12 @@ function App() {
               Public Key: <span>{result.public_key_type}</span>
               <br />
               Expires: <span>{result.not_valid_after}</span>
+              {result.pqc_handshake && (
+                <>
+                  Negotiated Group: <span>{result.negotiated_group}</span>
+                  <br />
+                </>
+              )}
             </div>
           )}
         </div>

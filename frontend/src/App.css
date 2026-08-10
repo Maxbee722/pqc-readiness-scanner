@@ -279,6 +279,12 @@ html {
   color: #9BA3AE;
 }
 
+.badge-group {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
 .result-detail {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.8rem;
