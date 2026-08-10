@@ -10,6 +10,11 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
+html {
+  background: #0E1116;
+  min-height: 100%;
+}
+
 .app {
   min-height: 100vh;
   padding: 3rem 1.5rem;
