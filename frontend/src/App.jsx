@@ -107,24 +107,25 @@ function App() {
     const collected = [];
 
     for (let i = 0; i < domains.length; i++) {
+      let result;
       try {
         const res = await fetch(`${API_BASE}/scan`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ domain: domains[i] }),
         });
-        const data = await res.json();
-        collected.push(data);
+        result = await res.json();
       } catch (err) {
-        collected.push({
+        result = {
           domain: domains[i],
           error: "Could not reach the scanner API.",
-        });
+        };
       }
 
+      collected.push(result);
       setProgress({ current: i + 1, total: domains.length });
       setResults([...collected]);
-      addToHistory(data);
+      addToHistory(result);
     }
 
     setLoading(false);
@@ -135,6 +136,11 @@ function App() {
     if (result.pqc_readiness === "NOT PQC-Ready")
       return <span className="badge not-ready">NOT READY</span>;
     return <span className="badge ready">READY</span>;
+  };
+
+  const clearHistory = () => {
+    setHistory([]);
+    localStorage.removeItem("pqc_scan_history");
   };
 
   return (
@@ -167,18 +173,23 @@ function App() {
           {history.length === 0 ? (
             <div className="history-empty">No scans yet</div>
           ) : (
-            history.map((entry, i) => (
-              <div className="history-item" key={i}>
-                <span className="history-domain">{entry.domain}</span>
-                <span
-                  className={
-                    entry.pqc_readiness === "NOT PQC-Ready"
-                      ? "history-dot not-ready"
-                      : "history-dot ready"
-                  }
-                ></span>
-              </div>
-            ))
+            <>
+              <button className="history-clear" onClick={clearHistory}>
+                Clear History
+              </button>
+              {history.map((entry, i) => (
+                <div className="history-item" key={i}>
+                  <span className="history-domain">{entry.domain}</span>
+                  <span
+                    className={
+                      entry.pqc_readiness === "NOT PQC-Ready"
+                        ? "history-dot not-ready"
+                        : "history-dot ready"
+                    }
+                  ></span>
+                </div>
+              ))}
+            </>
           )}
         </div>
       )}

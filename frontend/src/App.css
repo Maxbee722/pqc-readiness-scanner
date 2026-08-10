@@ -244,6 +244,18 @@ html {
   background: #E8543D;
 }
 
+.history-clear {
+  width: 100%;
+  background: transparent;
+  border: 1px solid #262B33;
+  color: #E8543D;
+  padding: 0.4rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  margin-bottom: 0.5rem;
+}
+
 .badge {
   font-size: 0.75rem;
   font-weight: 600;
