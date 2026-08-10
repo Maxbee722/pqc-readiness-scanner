@@ -29,3 +29,8 @@ def scan_batch():
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
+
+    
+@app.route("/ping", methods=["GET"])
+def ping():
+    return jsonify({"status": "alive"})
