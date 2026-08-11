@@ -18,13 +18,21 @@ html {
 html,
 body {
   overflow-x: hidden;
+  max-width: 100vw;
+}
+
+#root {
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 .app {
   min-height: 100vh;
   padding: 3rem 1.5rem;
   max-width: 720px;
+  width: 100%;
   margin: 0 auto;
+  overflow-x: hidden;
 }
 
 .hero {
@@ -371,18 +379,28 @@ body {
 }
 
 .comparison-table-wrapper {
+  width: 100%;
+  max-width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
   margin-bottom: 1.5rem;
 }
 
 .comparison-table {
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
   border-collapse: collapse;
   background: #161b22;
   border: 1px solid #262b33;
   border-radius: 12px;
   overflow: hidden;
   font-size: 0.8rem;
+}
+
+.comparison-table th,
+.comparison-table td {
+  white-space: nowrap;
 }
 
 .comparison-table th {
@@ -449,6 +467,7 @@ body {
     flex: 1 1 45%;
     font-size: 0.85rem;
     padding: 0.5rem 0.6rem;
+    min-width: 0;
   }
 
   .batch-sub-toggle {
