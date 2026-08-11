@@ -360,7 +360,6 @@ body {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1rem;
-  justify-content: flex-end;
 }
 
 .view-toggle button {
@@ -386,7 +385,6 @@ body {
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.8rem;
-  margin-left: 0.5rem;
 }
 
 .export-btn:hover {
@@ -396,7 +394,7 @@ body {
 
 .results-toolbar {
   display: flex;
-  margin-right: 26rem;
+  margin-right: auto;
 }
 
 .comparison-table-wrapper {
