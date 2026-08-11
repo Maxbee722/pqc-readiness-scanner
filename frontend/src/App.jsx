@@ -159,6 +159,40 @@ function App() {
     localStorage.removeItem("pqc_scan_history");
   };
 
+  const exportCSV = () => {
+    const headers = [
+      "Domain",
+      "Cert Status",
+      "Handshake Status",
+      "Signature Algorithm",
+      "Expires",
+    ];
+    const rows = results.map((r) => {
+      if (r.error) return [r.domain, "Error", "", "", r.error];
+      return [
+        r.domain,
+        r.pqc_readiness === "NOT PQC-Ready" ? "Classical" : "PQC",
+        r.pqc_handshake ? "PQC" : "Classical",
+        r.signature_algorithm,
+        r.not_valid_after,
+      ];
+    });
+
+    const csvContent = [headers, ...rows]
+      .map((row) =>
+        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","),
+      )
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `pqc-scan-results-${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="app">
       <div className="hero">
@@ -318,6 +352,13 @@ function App() {
 
       {mode === "batch" && results.length > 0 && (
         <div className="view-toggle">
+          {mode === "batch" && results.length > 0 && (
+            <span className="results-toolbar">
+              <button className="export-btn" onClick={exportCSV}>
+                Export CSV
+              </button>
+            </span>
+          )}
           <button
             className={viewMode === "cards" ? "active" : ""}
             onClick={() => setViewMode("cards")}

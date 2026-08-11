@@ -378,6 +378,27 @@ body {
   color: #7c6ff0;
 }
 
+.export-btn {
+  background: transparent;
+  border: 1px solid #262b33;
+  color: #9ba3ae;
+  padding: 0.4rem 0.9rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  margin-left: 0.5rem;
+}
+
+.export-btn:hover {
+  border-color: #7c6ff0;
+  color: #7c6ff0;
+}
+
+.results-toolbar {
+  display: flex;
+  margin-right: 26rem;
+}
+
 .comparison-table-wrapper {
   width: 100%;
   max-width: 100%;
@@ -479,7 +500,7 @@ body {
     justify-content: center;
   }
 
-  .history-toggle {
+  /*.history-toggle {
     position: static;
     display: block;
     margin: 0 auto 1.5rem auto;
@@ -490,5 +511,5 @@ body {
     position: static;
     width: 100%;
     margin-bottom: 1.5rem;
-  }
+  }*/
 }
