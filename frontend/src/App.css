@@ -362,6 +362,25 @@ body {
     font-size: 0.75rem;
     padding: 0.5rem 0.8rem;
   }
+
+  .mode-toggle {
+    flex-wrap: wrap;
+  }
+
+  .mode-toggle button {
+    flex: 1 1 45%;
+    font-size: 0.85rem;
+    padding: 0.5rem 0.6rem;
+  }
+
+  .batch-sub-toggle {
+    flex-wrap: wrap;
+  }
+
+  .view-toggle {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 }
 
 .view-toggle {
