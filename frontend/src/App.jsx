@@ -12,6 +12,7 @@ function App() {
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [viewMode, setViewMode] = useState("cards");
 
   useEffect(() => {
     const saved = localStorage.getItem("pqc_scan_history");
@@ -315,31 +316,103 @@ function App() {
         </div>
       )}
 
-      {results.map((result, i) => (
-        <div className="result-card" key={i}>
-          <div className="result-header">
-            <h3>{result.domain}</h3>
-            {getBadge(result)}
-          </div>
-          {result.error ? (
-            <div className="result-detail">{result.error}</div>
-          ) : (
-            <div className="result-detail">
-              Signature: <span>{result.signature_algorithm}</span>
-              <br />
-              Public Key: <span>{result.public_key_type}</span>
-              <br />
-              Expires: <span>{result.not_valid_after}</span>
-              {result.pqc_handshake && (
-                <>
-                  Negotiated Group: <span>{result.negotiated_group}</span>
-                  <br />
-                </>
-              )}
-            </div>
-          )}
+      {mode === "batch" && results.length > 0 && (
+        <div className="view-toggle">
+          <button
+            className={viewMode === "cards" ? "active" : ""}
+            onClick={() => setViewMode("cards")}
+          >
+            Cards
+          </button>
+          <button
+            className={viewMode === "table" ? "active" : ""}
+            onClick={() => setViewMode("table")}
+          >
+            Table
+          </button>
         </div>
-      ))}
+      )}
+
+      {viewMode === "cards" || mode === "single" ? (
+        results.map((result, i) => (
+          <div className="result-card" key={i}>
+            <div className="result-header">
+              <h3>{result.domain}</h3>
+              {getBadge(result)}
+            </div>
+            {result.error ? (
+              <div className="result-detail">{result.error}</div>
+            ) : (
+              <div className="result-detail">
+                Signature: <span>{result.signature_algorithm}</span>
+                <br />
+                Public Key: <span>{result.public_key_type}</span>
+                <br />
+                Expires: <span>{result.not_valid_after}</span>
+                <br />
+                {result.pqc_handshake && (
+                  <>
+                    Negotiated Group: <span>{result.negotiated_group}</span>
+                    <br />
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        ))
+      ) : (
+        <div className="comparison-table-wrapper">
+          <table className="comparison-table">
+            <thead>
+              <tr>
+                <th>Domain</th>
+                <th>Cert</th>
+                <th>Handshake</th>
+                <th>Signature</th>
+                <th>Expires</th>
+              </tr>
+            </thead>
+            <tbody>
+              {results.map((result, i) => (
+                <tr key={i}>
+                  <td>{result.domain}</td>
+                  {result.error ? (
+                    <td colSpan="4" className="table-error">
+                      {result.error}
+                    </td>
+                  ) : (
+                    <>
+                      <td>
+                        <span
+                          className={
+                            result.pqc_readiness === "NOT PQC-Ready"
+                              ? "dot not-ready"
+                              : "dot ready"
+                          }
+                        ></span>
+                      </td>
+                      <td>
+                        <span
+                          className={
+                            result.pqc_handshake ? "dot ready" : "dot not-ready"
+                          }
+                        ></span>
+                      </td>
+                      <td className="table-mono">
+                        {result.signature_algorithm}
+                      </td>
+                      <td className="table-mono">
+                        {result.not_valid_after?.split(" ")[0]}
+                      </td>
+                    </>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       <footer className="footer">
         <a
           href="https://github.com/Maxbee722"
