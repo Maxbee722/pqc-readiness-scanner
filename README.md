@@ -26,15 +26,7 @@ However, Render's current Python runtime ships OpenSSL 3.0.20, which predates ML
 
 In practice, a domain's certificate and handshake results are independent — a site can pass one check and fail the other. Because Render's OpenSSL predates PQC support, a site's handshake may show as "not ready" here even if it's actually already PQC-capable in reality.
 
-## Roadmap
-
-**v2 (in progress)**
-
-- [ ] Comparison view for batch mode
-- [ ] Export results as PDF/CSV
-- [ ] "Learn More" section explaining PQC concepts
-
-**v3 (later)**
+## Roadmap V3
 
 - [ ] Migrate hosting to an environment with OpenSSL 3.5+ (either a custom Docker deployment on Render, or an alternative host with a newer default OpenSSL) to enable accurate handshake-layer detection in production
 
