@@ -18,21 +18,25 @@ Most organizations don't know where they currently stand. This tool measures tha
 - Supports single-domain scans, manual batch scans, and batch scans via `.txt` file upload
 - Returns results through a Flask API, displayed on a React dashboard
 
-## Current limitation (important)
+## Known limitation: handshake-layer detection on Render
 
-This tool currently checks **certificate signature strength only** — it does not yet inspect the TLS handshake's key exchange mechanism, which is a separate layer where hybrid post-quantum key exchange (e.g., X25519+Kyber) can already be present even when the certificate itself is classically signed. This means a "NOT READY" result reflects the certificate layer specifically, not the overall security of the connection.
+This tool includes handshake-layer PQC detection (checking whether a server negotiates a post-quantum key exchange group like X25519MLKEM768) via direct OpenSSL calls. This works correctly in local development, where a modern OpenSSL (3.5+) is available.
 
-In summary, every website on the internet (even PQC ready ones) would be displayed as "NOT READY".
+However, Render's current Python runtime ships OpenSSL 3.0.20, which predates ML-KEM support (added in OpenSSL 3.5, April 2025). As a result, handshake detection currently returns inaccurate results in production on Render specifically — this is a hosting environment limitation, not a code issue.
 
-## Roadmap (v2)
+In practice, a domain's certificate and handshake results are independent — a site can pass one check and fail the other. Because Render's OpenSSL predates PQC support, a site's handshake may show as "not ready" here even if it's actually already PQC-capable in reality.
 
-- [ ] Handshake-layer PQC key exchange detection (via 'sslyze')
-- [ ] Scan progress indicator
-- [ ] Scan history panel
-- [ ] Batch comparison view
+## Roadmap
+
+**v2 (in progress)**
+
+- [ ] Comparison view for batch mode
 - [ ] Export results as PDF/CSV
 - [ ] "Learn More" section explaining PQC concepts
-- [ ] Mobile responsiveness
+
+**v3 (later)**
+
+- [ ] Migrate hosting to an environment with OpenSSL 3.5+ (either a custom Docker deployment on Render, or an alternative host with a newer default OpenSSL) to enable accurate handshake-layer detection in production
 
 ## Tech stack
 
@@ -56,7 +60,7 @@ npm install
 npm run dev
 ```
 
-## Fun fact by author
+## Fun fact from author
 
 The name bash (the Bourne-Again SHell) is a double pun on creator Stephen Bourne and spiritual rebirth, built in 1989 to create a free alternative to UNIX's proprietary shell.
 

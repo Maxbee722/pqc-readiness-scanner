@@ -170,9 +170,10 @@ function App() {
           catches up
         </div>
         <div className="hero-warning">
-          ⚠️ Results reflect certificate signature strength only — not full TLS
-          handshake security. A "NOT READY" cert doesn't mean the site is
-          insecure today.
+          ⚠️ Certificate and handshake results are checked independently — a
+          domain can pass one and fail the other. Handshake detection is fully
+          accurate locally; on the current Render deployment it may under-report
+          due to a hosting-side OpenSSL version limit (see README).
         </div>
       </div>
 
