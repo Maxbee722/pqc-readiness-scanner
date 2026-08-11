@@ -500,6 +500,16 @@ body {
     justify-content: center;
   }
 
+  .results-toolbar {
+    margin-right: 0;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .export-btn {
+    margin-left: 0;
+  }
+
   /*.history-toggle {
     position: static;
     display: block;
