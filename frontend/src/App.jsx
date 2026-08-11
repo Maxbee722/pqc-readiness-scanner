@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import "./App.css";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 function App() {
   const [mode, setMode] = useState("single");
@@ -13,6 +15,7 @@ function App() {
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [viewMode, setViewMode] = useState("cards");
+  const [showLearnMore, setShowLearnMore] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("pqc_scan_history");
@@ -46,7 +49,7 @@ function App() {
     };
 
     setHistory((prev) => {
-      const updated = [entry, ...prev].slice(0, 20);
+      const updated = [entry, ...prev].slice(0, 100);
       localStorage.setItem("pqc_scan_history", JSON.stringify(updated));
       return updated;
     });
@@ -193,6 +196,38 @@ function App() {
     URL.revokeObjectURL(url);
   };
 
+  const exportPDF = () => {
+    const doc = new jsPDF();
+
+    doc.setFontSize(16);
+    doc.text("PQC Readiness Scanner — Batch Report", 14, 18);
+
+    doc.setFontSize(10);
+    doc.setTextColor(120);
+    doc.text(`Generated ${new Date().toLocaleString()}`, 14, 25);
+
+    const tableRows = results.map((r) => {
+      if (r.error) return [r.domain, "Error", "", "", r.error];
+      return [
+        r.domain,
+        r.pqc_readiness === "NOT PQC-Ready" ? "Classical" : "PQC",
+        r.pqc_handshake ? "PQC" : "Classical",
+        r.signature_algorithm || "",
+        r.not_valid_after || "",
+      ];
+    });
+
+    autoTable(doc, {
+      startY: 32,
+      head: [["Domain", "Cert", "Handshake", "Signature", "Expires"]],
+      body: tableRows,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [124, 111, 240] },
+    });
+
+    doc.save(`pqc-scan-results-${new Date().toISOString().split("T")[0]}.pdf`);
+  };
+
   return (
     <div className="app">
       <div className="hero">
@@ -211,6 +246,59 @@ function App() {
           due to a hosting-side OpenSSL version limit (see README).
         </div>
       </div>
+
+      <button
+        className="learn-more-toggle"
+        onClick={() => setShowLearnMore(!showLearnMore)}
+      >
+        {showLearnMore ? "Hide" : "Learn More"} about PQC
+      </button>
+
+      {showLearnMore && (
+        <div className="learn-more-panel">
+          <h3>What is Post-Quantum Cryptography?</h3>
+          <p>
+            Quantum computers, once powerful enough, will be able to break the
+            classical encryption (RSA, ECC) that secures most of today's
+            internet traffic — banking, healthcare, government communications,
+            all of it. Post-quantum cryptography (PQC) refers to a new
+            generation of encryption algorithms, standardized by NIST in 2024,
+            designed to resist attacks from both classical and quantum
+            computers.
+          </p>
+
+          <h3>
+            Why does this matter today, if quantum computers aren't here yet?
+          </h3>
+          <p>
+            Adversaries are already using a strategy called{" "}
+            <strong>harvest now, decrypt later</strong> — recording encrypted
+            traffic today with the intent to decrypt it once quantum computing
+            catches up. Data that needs to stay confidential for years is
+            already at risk, even though no quantum computer capable of breaking
+            it exists yet.
+          </p>
+
+          <h3>What does "certificate" vs "handshake" mean?</h3>
+          <p>
+            A secure connection has two independent layers: the{" "}
+            <strong>certificate</strong> (which proves a site's identity, signed
+            by a trusted authority) and the <strong>handshake</strong> (the live
+            negotiation that sets up the actual encrypted connection). A site
+            can be ready at one layer and not the other — this tool checks both
+            separately, rather than giving one blended verdict.
+          </p>
+
+          <h3>Why I built this</h3>
+          <p>
+            I'm a cybersecurity student interested in applied cryptography and
+            the practical side of the PQC transition, not just the math, but the
+            real-world gap between "the standards exist" and "organizations have
+            actually migrated." This tool is my attempt to make that gap visible
+            and measurable, one domain at a time.
+          </p>
+        </div>
+      )}
 
       <button
         className="history-toggle"
@@ -356,6 +444,9 @@ function App() {
             <span className="results-toolbar">
               <button className="export-btn" onClick={exportCSV}>
                 Export CSV
+              </button>
+              <button className="export-btn" onClick={exportPDF}>
+                Export PDF
               </button>
             </span>
           )}

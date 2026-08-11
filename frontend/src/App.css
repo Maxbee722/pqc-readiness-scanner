@@ -68,6 +68,49 @@ body {
   color: #7c6ff0;
 }
 
+.learn-more-toggle {
+  display: block;
+  margin: 0 auto 1.5rem auto;
+  background: transparent;
+  border: 1px solid #262b33;
+  color: #7c6ff0;
+  padding: 0.5rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.learn-more-panel {
+  background: #161b22;
+  border: 1px solid #262b33;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.learn-more-panel h3 {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1rem;
+  color: #7c6ff0;
+  margin-top: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.learn-more-panel h3:first-child {
+  margin-top: 0;
+}
+
+.learn-more-panel p {
+  color: #9ba3ae;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.learn-more-panel strong {
+  color: #e6e8eb;
+}
+
 .hero-warning {
   margin-top: 1rem;
   font-size: 0.8rem;
@@ -395,6 +438,33 @@ body {
 .results-toolbar {
   display: flex;
   margin-right: auto;
+}
+
+.input-panel input[type="file"] {
+  color: #9ba3ae;
+  font-family: "Inter", sans-serif;
+  font-size: 0.85rem;
+}
+
+.input-panel input[type="file"]::file-selector-button {
+  background: #7c6ff0;
+  color: #0e1116;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-family: "Inter", sans-serif;
+  cursor: pointer;
+  margin-right: 0.8rem;
+  transition: background 0.15s ease;
+}
+
+.input-panel input[type="file"]::file-selector-button:hover {
+  background: #6a5ce0;
+}
+
+.input-panel input[type="file"]::file-selector-button:active {
+  background: #5a4dd0;
 }
 
 .comparison-table-wrapper {
