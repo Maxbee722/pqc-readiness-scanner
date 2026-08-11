@@ -459,4 +459,17 @@ body {
     flex-wrap: wrap;
     justify-content: center;
   }
+
+  .history-toggle {
+    position: static;
+    display: block;
+    margin: 0 auto 1.5rem auto;
+    width: fit-content;
+  }
+
+  .history-panel {
+    position: static;
+    width: 100%;
+    margin-bottom: 1.5rem;
+  }
 }
