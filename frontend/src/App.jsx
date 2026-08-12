@@ -55,7 +55,7 @@ function App() {
     });
   };
 
-  const API_BASE = "https://pqc-readiness-scanner.onrender.com";
+  const API_BASE = "https://pqc-readiness-scanner-1.onrender.com";
 
   const scanSingle = async () => {
     if (!domain.trim()) return;
@@ -157,6 +157,21 @@ function App() {
     );
   };
 
+  const getOverallStatus = (result) => {
+    if (result.error) return null;
+
+    const certReady = result.pqc_readiness !== "NOT PQC-Ready";
+    const handshakeReady = result.pqc_handshake;
+
+    if (certReady && handshakeReady) {
+      return { text: "PQC Ready", className: "overall-ready" };
+    }
+    if (certReady || handshakeReady) {
+      return { text: "Potentially PQC Ready", className: "overall-partial" };
+    }
+    return { text: "Not PQC Ready", className: "overall-not-ready" };
+  };
+
   const clearHistory = () => {
     setHistory([]);
     localStorage.removeItem("pqc_scan_history");
@@ -240,10 +255,10 @@ function App() {
           catches up
         </div>
         <div className="hero-warning">
-          ⚠️ Certificate and handshake results are checked independently — a
-          domain can pass one and fail the other. Handshake detection is fully
-          accurate locally; on the current Render deployment it may under-report
-          due to a hosting-side OpenSSL version limit (see README).
+          ⚠️ No domain will currently show "Cert: PQC" — Certificate Authorities
+          haven't yet begun issuing post-quantum-signed certificates
+          industry-wide. Handshake results, however, are live and accurate. See
+          README for details.
         </div>
       </div>
 
@@ -472,6 +487,13 @@ function App() {
               <h3>{result.domain}</h3>
               {getBadge(result)}
             </div>
+            {getOverallStatus(result) && (
+              <div
+                className={`overall-status ${getOverallStatus(result).className}`}
+              >
+                {getOverallStatus(result).text}
+              </div>
+            )}
             {result.error ? (
               <div className="result-detail">{result.error}</div>
             ) : (

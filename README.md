@@ -18,17 +18,19 @@ Most organizations don't know where they currently stand. This tool measures tha
 - Supports single-domain scans, manual batch scans, and batch scans via `.txt` file upload
 - Returns results through a Flask API, displayed on a React dashboard
 
-## Known limitation: handshake-layer detection on Render
+## Handshake-layer detection
 
-This tool includes handshake-layer PQC detection (checking whether a server negotiates a post-quantum key exchange group like X25519MLKEM768) via direct OpenSSL calls. This works correctly in local development, where a modern OpenSSL (3.5+) is available.
+This tool checks two independent layers of PQC readiness: the certificate's signature algorithm, and the TLS handshake's key exchange mechanism (via direct OpenSSL calls checking for X25519MLKEM768 and related hybrid groups).
 
-However, Render's current Python runtime ships OpenSSL 3.0.20, which predates ML-KEM support (added in OpenSSL 3.5, April 2025). As a result, handshake detection currently returns inaccurate results in production on Render specifically — this is a hosting environment limitation, not a code issue.
+Handshake-layer detection requires OpenSSL 3.5+ (released April 2025, the first version with native ML-KEM support). This app is deployed via Docker on Render specifically to guarantee this — the base image (`python:3.12-slim-trixie`) ships OpenSSL 3.5.6, since Render's native Python buildpack only provides OpenSSL 3.0.20. As of this deployment, handshake detection is fully accurate in production.
 
-In practice, a domain's certificate and handshake results are independent — a site can pass one check and fail the other. Because Render's OpenSSL predates PQC support, a site's handshake may show as "not ready" here even if it's actually already PQC-capable in reality.
+## Why every domain shows "Cert: Classical" today
 
-## Roadmap V3
+As of 2026, essentially no Certificate Authority issues PQC-signed certificates yet — a 2026 measurement study found 0% adoption of post-quantum certificates across the scanned internet. This means every domain this tool scans will currently show "Cert: Classical," regardless of how PQC-ready that organization actually is at the handshake layer. This is expected, accurate behavior, not a bug — it reflects a real, current gap in CA infrastructure, not a limitation of this tool.
 
-- [ ] Migrate hosting to an environment with OpenSSL 3.5+ (either a custom Docker deployment on Render, or an alternative host with a newer default OpenSSL) to enable accurate handshake-layer detection in production
+## v3 (complete)
+
+- [x] Migrated hosting to Docker on Render with OpenSSL 3.5+ for accurate handshake-layer detection in production
 
 ## Tech stack
 
