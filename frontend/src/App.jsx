@@ -1,44 +1,39 @@
-import { useState, useEffect } from "react";
+// React hooks: useState manages local state
+import { useState } from "react";
 import "./App.css";
+// PDF libraries: jsPDF builds the file, autoTable renders the results table inside it
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+// Main App component — holds all state, scan/export logic, and the UI
 function App() {
+  // ---- State: controls which modes, panels, and views are displayed ----
   const [mode, setMode] = useState("single");
   const [batchInputType, setBatchInputType] = useState("manual");
   const [domain, setDomain] = useState("");
   const [domainList, setDomainList] = useState("");
   const [file, setFile] = useState(null);
+  // ---- Scan results, progress, and history state ----
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
-  const [history, setHistory] = useState([]);
+  // Initialize history lazily from localStorage (runs once on first render) —
+  // restores past scans without needing a setState-in-effect side effect
+  const [history, setHistory] = useState(() => {
+    try {
+      const saved = localStorage.getItem("pqc_scan_history");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [showHistory, setShowHistory] = useState(false);
+  // ---- Display toggles: card/table view and the "Learn More" panel ----
   const [viewMode, setViewMode] = useState("cards");
   const [showLearnMore, setShowLearnMore] = useState(false);
 
-  useEffect(() => {
-    const saved = localStorage.getItem("pqc_scan_history");
-    if (saved) {
-      try {
-        setHistory(JSON.parse(saved));
-      } catch (err) {
-        console.error("Could not load scan history");
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("pqc_scan_history");
-    if (saved) {
-      try {
-        setHistory(JSON.parse(saved));
-      } catch (err) {
-        console.error("Could not load scan history");
-      }
-    }
-  }, []);
-
+  // Save a successful scan result to history (skips errored scans),
+  // keeping the newest 100 entries persisted in localStorage
   const addToHistory = (result) => {
     if (result.error) return;
 
@@ -55,8 +50,10 @@ function App() {
     });
   };
 
+  // Base URL of the deployed Python backend (FastAPI on Render)
   const API_BASE = "https://pqc-readiness-scanner-1.onrender.com";
 
+  // Scan a single domain: POST to /scan, show the result, save it to history
   const scanSingle = async () => {
     if (!domain.trim()) return;
     setLoading(true);
@@ -70,7 +67,7 @@ function App() {
       const data = await res.json();
       setResults([data]);
       addToHistory(data);
-    } catch (err) {
+    } catch {
       setResults([
         {
           domain: domain.trim(),
@@ -82,6 +79,7 @@ function App() {
     setLoading(false);
   };
 
+  // Parse manually-typed domains (one per line, trimmed) and run the batch scan
   const scanBatchManual = async () => {
     const domains = domainList
       .split("\n")
@@ -92,6 +90,7 @@ function App() {
     await runBatch(domains);
   };
 
+  // Read domains from the uploaded .txt file and run the batch scan
   const scanBatchFile = async () => {
     if (!file) return;
     const text = await file.text();
@@ -103,6 +102,8 @@ function App() {
     await runBatch(domains);
   };
 
+  // Core batch scanner: loops over domains one-by-one, POSTs each to the API,
+  // updates the live progress bar + results as it goes, saving each to history
   const runBatch = async (domains) => {
     setLoading(true);
     setResults([]);
@@ -119,7 +120,7 @@ function App() {
           body: JSON.stringify({ domain: domains[i] }),
         });
         result = await res.json();
-      } catch (err) {
+      } catch {
         result = {
           domain: domains[i],
           error: "Could not reach the scanner API.",
@@ -135,6 +136,7 @@ function App() {
     setLoading(false);
   };
 
+  // Renders the CERT / HANDSHAKE status badges for a single scan result
   const getBadge = (result) => {
     if (result.error) return <span className="badge error">ERROR</span>;
     return (
@@ -157,6 +159,7 @@ function App() {
     );
   };
 
+  // Combines cert + handshake readiness into a single overall verdict banner
   const getOverallStatus = (result) => {
     if (result.error) return null;
 
@@ -172,11 +175,13 @@ function App() {
     return { text: "Not PQC Ready", className: "overall-not-ready" };
   };
 
+  // Wipe all saved history from state and localStorage
   const clearHistory = () => {
     setHistory([]);
     localStorage.removeItem("pqc_scan_history");
   };
 
+  // Build a CSV file from the current results and trigger a browser download
   const exportCSV = () => {
     const headers = [
       "Domain",
@@ -196,12 +201,14 @@ function App() {
       ];
     });
 
+    // Assemble CSV text: quote every cell and escape embedded quotes for safety
     const csvContent = [headers, ...rows]
       .map((row) =>
         row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","),
       )
       .join("\n");
 
+    // Create a downloadable .csv blob and click an anchor to save it
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -211,6 +218,7 @@ function App() {
     URL.revokeObjectURL(url);
   };
 
+  // Generate a PDF report of the results using jsPDF + autoTable, then download it
   const exportPDF = () => {
     const doc = new jsPDF();
 
@@ -240,11 +248,14 @@ function App() {
       headStyles: { fillColor: [124, 111, 240] },
     });
 
+    // Save the finished PDF to the user's downloads
     doc.save(`pqc-scan-results-${new Date().toISOString().split("T")[0]}.pdf`);
   };
 
+  // ---- RENDERED UI ------------------------------------------------------
   return (
     <div className="app">
+      {/* Header / hero section: title, tagline, and Q-Day warning */}
       <div className="hero">
         <h1>
           PQC <span>Readiness</span> Scanner
@@ -262,6 +273,7 @@ function App() {
         </div>
       </div>
 
+      {/* "Learn More" toggle button that opens/closes the PQC education panel */}
       <button
         className="learn-more-toggle"
         onClick={() => setShowLearnMore(!showLearnMore)}
@@ -269,6 +281,7 @@ function App() {
         {showLearnMore ? "Hide" : "Learn More"} about PQC
       </button>
 
+      {/* Educational panel explaining post-quantum cryptography (shown when open) */}
       {showLearnMore && (
         <div className="learn-more-panel">
           <h3>What is Post-Quantum Cryptography?</h3>
@@ -315,6 +328,7 @@ function App() {
         </div>
       )}
 
+      {/* History toggle button — opens/closes the saved-scans panel */}
       <button
         className="history-toggle"
         onClick={() => setShowHistory(!showHistory)}
@@ -322,6 +336,7 @@ function App() {
         History {history.length > 0 && `(${history.length})`}
       </button>
 
+      {/* Saved scan history panel (rendered only when toggled open) */}
       {showHistory && (
         <div className="history-panel">
           {history.length === 0 ? (
@@ -348,6 +363,7 @@ function App() {
         </div>
       )}
 
+      {/* Mode switcher: toggle between Single Domain and Batch Scan */}
       <div className="mode-toggle">
         <button
           className={mode === "single" ? "active" : ""}
@@ -363,7 +379,9 @@ function App() {
         </button>
       </div>
 
+      {/* Input panel — its contents swap based on the active mode */}
       <div className="input-panel">
+        {/* Single mode: one domain textbox + scan button */}
         {mode === "single" && (
           <>
             <input
@@ -382,6 +400,7 @@ function App() {
           </>
         )}
 
+        {/* Batch mode: choose between manual typing and file upload */}
         {mode === "batch" && (
           <>
             <div className="batch-sub-toggle">
@@ -399,6 +418,7 @@ function App() {
               </button>
             </div>
 
+            {/* Manual entry: textarea with one domain per line */}
             {batchInputType === "manual" && (
               <>
                 <textarea
@@ -418,6 +438,7 @@ function App() {
               </>
             )}
 
+            {/* File upload: pick a .txt file containing the domains */}
             {batchInputType === "file" && (
               <>
                 <input
@@ -439,6 +460,7 @@ function App() {
         )}
       </div>
 
+      {/* Live progress bar and "Scanning X of Y" text shown during a batch run */}
       {loading && progress.total > 0 && (
         <div className="progress-bar-container">
           <div className="progress-text">
@@ -453,6 +475,7 @@ function App() {
         </div>
       )}
 
+      {/* Results toolbar: CSV/PDF export on the left, Cards/Table view toggle on the right */}
       {mode === "batch" && results.length > 0 && (
         <div className="view-toggle">
           {mode === "batch" && results.length > 0 && (
@@ -480,6 +503,7 @@ function App() {
         </div>
       )}
 
+      {/* Render results as cards (single mode or card view) or as a comparison table */}
       {viewMode === "cards" || mode === "single" ? (
         results.map((result, i) => (
           <div className="result-card" key={i}>
@@ -515,6 +539,8 @@ function App() {
           </div>
         ))
       ) : (
+        // Table view (batch mode): full-width comparison table that scrolls
+        // horizontally on small screens — layout handled in App.css
         <div className="comparison-table-wrapper">
           <table className="comparison-table">
             <thead>
@@ -567,6 +593,7 @@ function App() {
         </div>
       )}
 
+      {/* Site footer with author links */}
       <footer className="footer">
         <a
           href="https://github.com/Maxbee722"

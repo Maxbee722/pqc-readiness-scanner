@@ -6,8 +6,10 @@ import subprocess
 app = Flask(__name__)
 CORS(app)
 
+# API layer: exposes the scanner's functions as HTTP endpoints for the frontend
 @app.route("/scan", methods=["POST"])
 def scan_single():
+    # Scans a single domain, expects {"domain": "example.com"} in the request body
     data = request.get_json()
     domain = data.get("domain")
 
@@ -19,6 +21,7 @@ def scan_single():
 
 @app.route("/scan-batch", methods=["POST"])
 def scan_batch():
+    # Scans multiple domains, expects {"domains": [...]} in the request body
     data = request.get_json()
     domains = data.get("domains")
 
@@ -28,10 +31,10 @@ def scan_batch():
     results = scan_multiple(domains)
     return jsonify(results)
 
-if __name__ == "__main__":
-    app.run(debug=True, port=5000)
-
-    
 @app.route("/ping", methods=["GET"])
 def ping():
+    # Lightweight health-check endpoint, used by the keep-alive cron job to prevent Render's free tier from spinning down
     return jsonify({"status": "alive"})
+
+if __name__ == "__main__":
+    app.run(debug=True, port=5000)
