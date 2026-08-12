@@ -1,3 +1,4 @@
+#Importing requirements
 import ssl
 import subprocess
 import socket
@@ -6,6 +7,7 @@ import os
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 
+#Classifies a certificate's signature as PQC-ready or not
 def classify_pqc_readiness(sig_algo, pubkey_type):
     vulnerable_sigs = ["sha256WithRSAEncryption", "sha384WithRSAEncryption", "ecdsa-with-SHA256", "ecdsa-with-SHA384"]
     if sig_algo in vulnerable_sigs:
@@ -13,6 +15,7 @@ def classify_pqc_readiness(sig_algo, pubkey_type):
     else:
         return "Potentially PQC-Ready"
 
+#Connects to a domain, extracts certificate info, and merges in handshake results
 def get_cert_info(domain, port=443):
     result = {"domain": domain}
     try:
@@ -40,6 +43,7 @@ def get_cert_info(domain, port=443):
 
     return result
 
+#Adding feature to scan multiple domains at once
 def scan_multiple(domains):
     results = []
     for domain in domains:
@@ -60,6 +64,7 @@ def print_results(results):
             print(f"  Not Valid After: {r['not_valid_after']}")
             print(f"  PQC Readiness: {r['pqc_readiness']}")
 
+#Manual domain input for batch mode
 def get_domains_manually():
     domains = []
     print("Enter domains one at a time. Type 'done' when finished.")
@@ -71,6 +76,7 @@ def get_domains_manually():
             domains.append(entry)
     return domains
 
+#File upload with line by line domains for Batch mode
 def get_domains_from_file():
     filepath = input("Enter the path to your .txt file: ").strip()
     try:
@@ -81,6 +87,7 @@ def get_domains_from_file():
         print(f"Could not read file: {e}")
         return []
 
+#Selecting scan mode
 def main():
     print("1: Scan a single domain")
     print("2: Scan multiple domains")
@@ -116,17 +123,23 @@ def main():
 if __name__ == "__main__":
     main()
 
+# Captured: Negotiated TLS Post-Quantum Cryptography (PQC) Hybrid Named Groups.
+#These represent hybrid key encapsulation mechanisms (KEM) combining classical
+#elliptic curves (like X25519) with quantum-resistant algorithms (like ML-KEM).
+
 PQC_GROUPS = [
     "X25519MLKEM768",
     "SecP256r1MLKEM768",
     "SecP384r1MLKEM1024",
 ]
 
+#Determining PQC readiness using openssl 3.5+
 def check_pqc_handshake(domain, port=443):
     groups_string = ":".join(PQC_GROUPS)
     try:
         result = subprocess.run(
-            [get_openssl_path(), "s_client", "-connect", f"{domain}:{port}"],
+            [get_openssl_path(), "s_client", "-connect", f"{domain}:{port}",
+ "-groups", groups_string],
             input="",
             capture_output=True,
             text=True,
